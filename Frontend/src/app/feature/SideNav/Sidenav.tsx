@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { authService } from '../../core/servicios/ServicioAuth';
-import './SideNav.scss';
+import './Sidenav.scss';
 
 export const SideNav: React.FC = () => {
   const navigate = useNavigate();
@@ -55,3 +55,4 @@ export const SideNav: React.FC = () => {
     </div>
   );
 };
+
