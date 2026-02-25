@@ -1,5 +1,5 @@
 
-import './footer.scss'
+import './Footer.scss'
 function footer(){
     return(
         <>
@@ -12,5 +12,6 @@ function footer(){
         </>
     )
 }
+
 
 export default footer;
