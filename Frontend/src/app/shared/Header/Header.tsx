@@ -1,5 +1,5 @@
 
-import './header.scss'
+import './Header.scss'
 function header(){
     return(
         <>
@@ -17,5 +17,6 @@ function header(){
         </>
     )
 }
+
 
 export default header;
