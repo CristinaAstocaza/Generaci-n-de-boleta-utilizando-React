@@ -3,11 +3,15 @@ import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const URL_EXCLUIDA = 'https://apiperu.dev';
 
+const esUrlExternaExcluida = (url?: string): boolean => {
+  return !!url?.includes(URL_EXCLUIDA);
+};
+
 /*Interceptor de peticiones: Agrega el token JWT automáticamente */
 axios.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // aqui excluye la parte del api
-    if (config.url?.includes(URL_EXCLUIDA)) {
+    if (esUrlExternaExcluida(config.url)) {
       console.log(` Interceptor omitido para URL externa: ${config.url}`);
       return config;
     }
@@ -33,6 +37,11 @@ axios.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     console.error('Error en petición HTTP:', error);
+
+    if (esUrlExternaExcluida(error.config?.url)) {
+      console.warn('Error de API externa, no se cerrará la sesión del usuario:', error.config?.url);
+      return Promise.reject(error);
+    }
 
     // Si es error 401 (No autorizado), redirigir al login
     if (error.response?.status === 401) {

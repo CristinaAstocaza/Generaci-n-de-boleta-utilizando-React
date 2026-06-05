@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_PERU_BASE_URL, getApiPeruHeaders } from './ApiPeruConfig';
 
 export interface ReniecResponse {
   success: boolean;
@@ -10,8 +11,7 @@ export interface ReniecResponse {
 }
 
 class ReniecService {
-  private apiUrl = 'https://apiperu.dev/api/dni';
-  private token = '732fb308c0370658a2db5b5ae05b8d1b8a4c42bcade0466b7d1db5a2bdf3fa8a';
+  private apiUrl = `${API_PERU_BASE_URL}/dni`;
   
   async obtenerDatosPorDni(dni: string): Promise<ReniecResponse> {
     try {
@@ -19,10 +19,7 @@ class ReniecService {
         this.apiUrl,
         { dni },
         {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-            'Content-Type': 'application/json'
-          }
+          headers: getApiPeruHeaders()
         }
       );
       return response.data;

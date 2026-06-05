@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_PERU_BASE_URL, getApiPeruHeaders } from './ApiPeruConfig';
 
 export interface SunatResponse {
   success: boolean;
@@ -12,8 +13,7 @@ export interface SunatResponse {
 }
 
 class SunatService {
-  private apiUrl = 'https://apiperu.dev/api/ruc';
-  private token = '732fb308c0370658a2db5b5ae05b8d1b8a4c42bcade0466b7d1db5a2bdf3fa8a';
+  private apiUrl = `${API_PERU_BASE_URL}/ruc`;
 
   async obtenerDatosPorRuc(ruc: string): Promise<SunatResponse> {
     try {
@@ -21,11 +21,7 @@ class SunatService {
         this.apiUrl,
         { ruc },
         {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.token}`
-          }
+          headers: getApiPeruHeaders()
         }
       );
       return response.data;

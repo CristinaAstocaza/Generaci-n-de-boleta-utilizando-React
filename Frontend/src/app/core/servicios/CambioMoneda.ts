@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_PERU_BASE_URL, getApiPeruHeaders } from './ApiPeruConfig';
 
 export interface TipoCambioResponse {
   success: boolean;
@@ -12,9 +13,7 @@ export interface TipoCambioResponse {
 }
 
 class ServicioCambioMoneda {
-  private apiUrl = "https://apiperu.dev/api/tipo_de_cambio";
-  private token =
-    "732fb308c0370658a2db5b5ae05b8d1b8a4c42bcade0466b7d1db5a2bdf3fa8a";
+  private apiUrl = `${API_PERU_BASE_URL}/tipo_de_cambio`;
 
   // Fecha y tipo de cambio fijos para usar en expo
   private fechaFija = "2025-11-21";
@@ -26,9 +25,7 @@ class ServicioCambioMoneda {
       const response = await axios.get<TipoCambioResponse>(
         `${this.apiUrl}?fecha=${this.fechaFija}`,
         {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
+          headers: getApiPeruHeaders(),
         }
       );
 
