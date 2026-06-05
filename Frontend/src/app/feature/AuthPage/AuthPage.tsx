@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Login } from '../login/Login';
 import { Registro } from '../Registro/Registro';
+import { DEMO_AUTH_MODE } from '../../core/servicios/ServicioAuth';
 import './AuthPage.scss';
 
 // Definir tipo para los refs de los componentes hijos
@@ -30,7 +31,7 @@ export const AuthPage: React.FC = () => {
   };
 
   const handleSuccess = () => {
-    navigate('/panel');
+    navigate('/dashboard');
   };
 
   return (
@@ -39,7 +40,7 @@ export const AuthPage: React.FC = () => {
         
         {/* Contenedor de Registro */}
         <div className="form-container sign-up-container">
-          <Registro ref={registroRef} onSuccess={handleSuccess} />
+          <Registro ref={registroRef} onSuccess={DEMO_AUTH_MODE ? showSignIn : handleSuccess} />
         </div>
 
         {/* Contenedor de Login */}

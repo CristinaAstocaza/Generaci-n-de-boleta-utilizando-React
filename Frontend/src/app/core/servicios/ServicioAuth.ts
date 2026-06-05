@@ -8,6 +8,13 @@ import type{
 } from '../models/Autenticacion.models';
 
 const API_URL = 'http://68.220.169.108:8080/api/usuarios';
+export const DEMO_AUTH_MODE = true;
+
+const DEMO_USERS_KEY = 'demoUsers';
+
+interface DemoUser extends UserData {
+  password: string;
+}
 
 class AuthService {
   private currentUser: UserData | null = null;
@@ -20,12 +27,19 @@ class AuthService {
 
   /* Verificar token al iniciar la aplicación */
   private async verifyTokenOnInit(): Promise<void> {
+    if (DEMO_AUTH_MODE) {
+      if (this.getToken() && this.currentUser) {
+        console.log(' Token demo válido');
+      }
+      return;
+    }
+
     const token = this.getToken();
     if (token) {
       try {
         await this.verificarToken();
         console.log('  Token válido');
-      } catch (error: unknown) { 
+      } catch { 
         console.warn(' Token inválido, limpiando sesión');
   
         this.cerrarSession();
@@ -56,6 +70,10 @@ class AuthService {
   async register(registerData: RegistroRequest): Promise<AuthResponse> {
     console.log(' Registrando usuario...');
 
+    if (DEMO_AUTH_MODE) {
+      return this.registerDemo(registerData);
+    }
+
     try {
       const response = await axios.post<AuthResponse>(`${API_URL}/registro`, registerData);
       console.log('✅ Usuario registrado:', response.data);
@@ -69,6 +87,10 @@ class AuthService {
   /*LOGINn*/
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     console.log(' Iniciando sesión...');
+
+    if (DEMO_AUTH_MODE) {
+      return this.loginDemo(credentials);
+    }
 
     try {
       const response = await axios.post<AuthResponse>(`${API_URL}/login`, credentials);
@@ -92,6 +114,24 @@ class AuthService {
 
     if (!token) {
       throw new Error('No hay token');
+    }
+
+    if (DEMO_AUTH_MODE) {
+      const user = this.getUserFromStorage();
+
+      if (!user || !token.startsWith('demo-token-')) {
+        throw new Error('Sesión demo inválida');
+      }
+
+      return {
+        token,
+        idUsuario: user.idUsuario,
+        email: user.email,
+        nombreCompleto: user.nombreCompleto,
+        documento: user.documento,
+        mensaje: 'Token demo válido',
+        success: true
+      };
     }
 
     try {
@@ -118,6 +158,10 @@ class AuthService {
       throw new Error('No hay token');
     }
 
+    if (DEMO_AUTH_MODE) {
+      return this.verificarToken();
+    }
+
     try {
       const response = await axios.post<AuthResponse>(
         `${API_URL}/refrescar-token`,
@@ -136,6 +180,10 @@ class AuthService {
 
   /* VERIFICAR EMAIL DISPONIBLE */
   async verificarEmailDisponible(email: string): Promise<boolean> {
+    if (DEMO_AUTH_MODE) {
+      return !this.getDemoUsers().some(user => user.email.toLowerCase() === email.toLowerCase());
+    }
+
     try {
       const response = await axios.get<{ disponible: boolean }>(
         `${API_URL}/verificar-email/${email}`
@@ -183,6 +231,72 @@ class AuthService {
     localStorage.removeItem('currentUser');
     this.currentUser = null;
     console.log(' Sesión limpiada');
+  }
+
+  private getDemoUsers(): DemoUser[] {
+    const usersJson = localStorage.getItem(DEMO_USERS_KEY);
+    return usersJson ? JSON.parse(usersJson) : [];
+  }
+
+  private saveDemoUsers(users: DemoUser[]): void {
+    localStorage.setItem(DEMO_USERS_KEY, JSON.stringify(users));
+  }
+
+  private registerDemo(registerData: RegistroRequest): AuthResponse {
+    const users = this.getDemoUsers();
+    const email = registerData.email.trim().toLowerCase();
+
+    if (users.some(user => user.email.toLowerCase() === email)) {
+      throw new Error('El email ya se encuentra registrado');
+    }
+
+    if (users.some(user => user.documento === registerData.numeroDocumento)) {
+      throw new Error('El documento ya se encuentra registrado');
+    }
+
+    const newUser: DemoUser = {
+      idUsuario: Date.now(),
+      email,
+      password: registerData.password,
+      nombreCompleto: `${registerData.nombres} ${registerData.apellidos}`.trim(),
+      documento: registerData.numeroDocumento
+    };
+
+    this.saveDemoUsers([...users, newUser]);
+
+    return {
+      token: '',
+      idUsuario: newUser.idUsuario,
+      email: newUser.email,
+      nombreCompleto: newUser.nombreCompleto,
+      documento: newUser.documento,
+      mensaje: 'Usuario demo registrado exitosamente',
+      success: true
+    };
+  }
+
+  private loginDemo(credentials: LoginCredentials): AuthResponse {
+    const email = credentials.email.trim().toLowerCase();
+    const user = this.getDemoUsers().find(
+      demoUser => demoUser.email.toLowerCase() === email && demoUser.password === credentials.password
+    );
+
+    if (!user) {
+      throw new Error('Credenciales inválidas');
+    }
+
+    const response: AuthResponse = {
+      token: `demo-token-${user.idUsuario}`,
+      idUsuario: user.idUsuario,
+      email: user.email,
+      nombreCompleto: user.nombreCompleto,
+      documento: user.documento,
+      mensaje: 'Login demo exitoso',
+      success: true
+    };
+
+    this.saveAuthData(response);
+    return response;
   }
 
   /* Manejo de errores */

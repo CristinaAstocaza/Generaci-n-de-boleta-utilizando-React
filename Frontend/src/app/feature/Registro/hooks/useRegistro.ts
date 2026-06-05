@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../../core/servicios/ServicioAuth';
+import { authService, DEMO_AUTH_MODE } from '../../../core/servicios/ServicioAuth';
 import { reniecService } from '../../../core/servicios/ReniecService';
 import { sunatService } from '../../../core/servicios/SunatService';
 import type { RegistroRequest } from '../../../core/models/Autenticacion.models';
@@ -115,10 +115,14 @@ export const useRegistro = (onSuccess: () => void) => {
       };
 
       await authService.register(registroData);
-      setSuccessMessage('Usuario registrado exitosamente');
+      setSuccessMessage(
+        DEMO_AUTH_MODE
+          ? 'Usuario registrado exitosamente. Ahora inicia sesión.'
+          : 'Usuario registrado exitosamente'
+      );
 
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate(DEMO_AUTH_MODE ? '/autenticacion' : '/dashboard');
         onSuccess();
       }, 1500);
     } catch (error) {
